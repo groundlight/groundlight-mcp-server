@@ -1,5 +1,4 @@
 import logging
-import sys
 from contextlib import asynccontextmanager
 from functools import cache
 from typing import Annotated
@@ -8,44 +7,43 @@ from groundlight import Detector, ExperimentalApi, Groundlight, ImageQuery
 from mcp.server.fastmcp import FastMCP, Image
 from pydantic import Field
 
+from groundlight_mcp_server.utils import load_image, printerr
+
 logger = logging.getLogger(__name__)
 
 
 @cache
 def get_gl_client() -> Groundlight:
-    logger.error("Initializing Groundlight client")
+    logger.info("Initializing Groundlight client")
     return Groundlight()
 
 
 @cache
 def get_experimental_client() -> ExperimentalApi:
-    logger.error("Initializing Experimental API client")
+    logger.info("Initializing Experimental API client")
     return ExperimentalApi()
-
-
-def printerr(message: str):
-    print(message, file=sys.stderr)
 
 
 @asynccontextmanager
 async def app_lifespan(server: FastMCP):
     """Manage application lifecycle with type-safe context"""
-    logger.error("Starting up Groundlight MCP server")
-    printerr("Starting up Groundlight MCP server")
+    logger.info("Starting up Groundlight MCP server")
     # Initialize and cache the Groundlight client here so it can be reused across requests
     try:
         get_gl_client()
         get_experimental_client()
     except Exception as e:
         logger.error(f"Failed to initialize Groundlight client: {e}")
-        printerr(f"ERROR: Failed to initialize Groundlight client: {e}")
+        raise e
 
+    logger.info("Groundlight MCP server has started, listening for requests...")
     yield
 
 
 mcp = FastMCP(
     "groundlight-mcp",
     lifespan=app_lifespan,
+    description="Groundlight MCP server",
 )
 
 
@@ -79,6 +77,20 @@ def list_detectors() -> list[Detector]:
 
 
 @mcp.tool(
+    name="submit_image_query",
+    description=(
+        "Submit an image to be answered by the specified detector. The image can be provided as a "
+        "file path, URL, or raw bytes. The detector will return a response with a label and confidence score."
+    ),
+)
+def submit_image_query(detector_id: str, image: str | bytes) -> ImageQuery:
+    gl = get_gl_client()
+    img = load_image(image)
+    iq = gl.submit_image_query(detector=detector_id, image=img)
+    return iq
+
+
+@mcp.tool(
     name="get_image_query",
     description="Get an existing image query by its ID.",
 )
@@ -94,6 +106,8 @@ def get_image_query(image_query_id: str) -> ImageQuery:
 def get_image(image_query_id: str) -> Image:
     gl_exp = get_experimental_client()
     image_bytes = gl_exp.get_image(iq_id=image_query_id)
+    if hasattr(image_bytes, "read"):  # Convert BufferedReader to bytes if needed
+        image_bytes = image_bytes.read()
     return Image(data=image_bytes, format="jpeg")
 
 
