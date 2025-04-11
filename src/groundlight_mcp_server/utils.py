@@ -1,17 +1,8 @@
 import io
 import os
-import sys
 
 import requests
 from PIL import Image as PILImage
-
-
-def printerr(message: str):
-    """
-    Print error messages to stderr.
-    This is useful for debugging and logging purposes in MCP.
-    """
-    print(message, file=sys.stderr)
 
 
 def retrieve_image_from_url(image_url: str) -> PILImage.Image:

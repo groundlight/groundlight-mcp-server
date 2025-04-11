@@ -7,7 +7,7 @@ from groundlight import Detector, ExperimentalApi, Groundlight, ImageQuery
 from mcp.server.fastmcp import FastMCP, Image
 from pydantic import Field
 
-from groundlight_mcp_server.utils import load_image, printerr
+from groundlight_mcp_server.utils import load_image
 
 logger = logging.getLogger(__name__)
 
