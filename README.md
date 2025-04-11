@@ -8,40 +8,45 @@ This MCP server is still in early development. The functionality and available t
 ### Tools
 The following tools are available in the Groundlight MCP server:
 
-1. **get_detector**
+1. **create_detector**
+   - Description: Create a detector based on the specified configuration. Supports three modes:
+     1. Binary: Answers 'yes' or 'no' to a natural-language query about images.
+     2. Multiclass: Classifies images into predefined categories based on natural-language queries.
+     3. Counting: Counts occurrences of specified objects in images using natural-language descriptions.
+
+     All detectors analyze images to answer natural-language queries and return confidence scores indicating result reliability. If confidence falls below the specified threshold, the query is escalated to human review. Detectors improve over time through continuous learning from feedback and additional examples.
+   - Input: `config` (DetectorConfig object with name, query, confidence_threshold, mode, and mode-specific configuration)
+   - Returns: `Detector` object
+
+2. **get_detector**
    - Description: Get a detector by its ID.
    - Input: `detector_id` (string)
    - Returns: `Detector` object
 
-2. **list_detectors**
+3. **list_detectors**
    - Description: List all detectors associated with the current user.
    - Input: None
    - Returns: List of `Detector` objects
 
-3. **submit_image_query**
+4. **submit_image_query**
    - Description: Submit an image to be answered by the specified detector. The image can be provided as a file path, URL, or raw bytes. The detector will return a response with a label and confidence score.
    - Input: `detector_id` (string), `image` (string or bytes)
    - Returns: `ImageQuery` object
 
-4. **get_image_query**
+5. **get_image_query**
    - Description: Get an existing image query by its ID.
    - Input: `image_query_id` (string)
    - Returns: `ImageQuery` object
-
-5. **get_image**
-   - Description: Get the image associated with an image query by its ID.
-   - Input: `image_query_id` (string)
-   - Returns: `Image` object
 
 6. **list_image_queries**
    - Description: List all image queries associated with the specified detector. Note that this may return a large number of results.
    - Input: `detector_id` (string)
    - Returns: List of `ImageQuery` objects
 
-7. **create_binary_detector**
-   - Description: Create a binary classification detector that responds with 'yes' or 'no' (or sometimes 'unclear') to a natural-language query about images. This detector analyzes images to answer questions that have binary outcomes and returns a calibrated confidence score indicating the likelihood of the answer being correct. A confidence_threshold indicates the minimum confidence required for the detector to return an answer. If the confidence score is below this threshold, the detector will escalate the question to a human reviewer. Notably, Groundlight detectors get stronger and more accurate over time as they learn from human feedback.
-   - Input: `detector_name` (string), `detector_query` (string), `detector_confidence_threshold` (float, range 0.5-1.0, default 0.9)
-   - Returns: `Detector` object
+7. **get_image**
+   - Description: Get the image associated with an image query by its ID. Optionally annotate with bounding boxes on the image if available.
+   - Input: `image_query_id` (string), `annotate` (boolean, default: false)
+   - Returns: `Image` object
 
 
 ## Configuration
