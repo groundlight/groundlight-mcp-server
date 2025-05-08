@@ -1,9 +1,17 @@
 import logging
 from contextlib import asynccontextmanager
 from functools import cache
-from typing import Annotated, Literal
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
-from groundlight import Detector, ExperimentalApi, Groundlight, ImageQuery
+from groundlight import (
+    ROI,
+    Detector,
+    ExperimentalApi,
+    Groundlight,
+    ImageQuery,
+    Rule,
+    VerbEnum,
+)
 from mcp.server.fastmcp import FastMCP, Image
 from pydantic import BaseModel, Field
 
@@ -216,3 +224,192 @@ def get_image(image_query_id: str, annotate: bool = False) -> Image:
     image = load_image(image_bytes)
     annotated_image = render_bounding_boxes(image, iq.rois)
     return to_mcp_image(annotated_image)
+
+
+class WebhookConfig(BaseModel):
+    url: str = Field(..., description="URL to send webhook notifications to")
+    include_image: bool = Field(
+        False, description="Whether to include the image in the webhook payload"
+    )
+
+
+class EmailConfig(BaseModel):
+    email: str = Field(..., description="Email address to send notifications to")
+    include_image: bool = Field(
+        False, description="Whether to include the image in the email"
+    )
+
+
+class TextConfig(BaseModel):
+    phone_number: str = Field(
+        ..., description="Phone number to send text notifications to"
+    )
+    include_image: bool = Field(
+        False, description="Whether to include the image in the text message"
+    )
+
+
+class ConditionConfig(BaseModel):
+    verb: VerbEnum = Field(
+        ...,
+        description="Condition verb that defines when a rule should trigger",
+    )
+    parameters: dict[str, int | str] = Field(
+        ...,
+        description="Condition parameters that configure the trigger behavior based on the verb. "
+        "For ANSWERED_CONSECUTIVELY: {'num_consecutive_labels': N, 'label': 'YES/NO'}, "
+        "For CHANGED_TO: {'label': 'YES/NO'}, "
+        "For ANSWERED_WITHIN_TIME: {'time_value': N, 'time_unit': 'MINUTES/HOURS/DAYS'}, "
+        "These parameters define specific scenarios that will trigger actions like sending notifications.",
+    )
+
+
+class AlertConfig(BaseModel):
+    name: str = Field(..., description="Name of the rule")
+    detector_id: str = Field(
+        ..., description="ID of the detector to attach the rule to"
+    )
+    condition: ConditionConfig = Field(
+        ..., description="Condition that triggers the rule"
+    )
+    webhook_action: Optional[List[WebhookConfig]] = Field(
+        None, description="Webhook actions to perform when the rule is triggered"
+    )
+    email_action: Optional[List[EmailConfig]] = Field(
+        None, description="Email actions to perform when the rule is triggered"
+    )
+    text_action: Optional[List[TextConfig]] = Field(
+        None, description="Text message actions to perform when the rule is triggered"
+    )
+    enabled: bool = Field(True, description="Whether the rule is enabled")
+    human_review_required: bool = Field(
+        False, description="Whether human review is required before triggering the rule"
+    )
+
+
+@mcp.tool(
+    name="create_alert",
+    description="Create an alert for a detector that triggers actions when specific conditions are met.",
+)
+def create_alert(config: AlertConfig) -> Rule:
+    gl_exp = get_experimental_client()
+
+    # Create condition
+    condition = gl_exp.make_condition(
+        verb=config.condition.verb, parameters=config.condition.parameters
+    )
+
+    # Initialize action lists
+    actions = []
+    webhook_actions = []
+
+    # Add actions by type
+    if config.webhook_action:
+        webhook_actions = [
+            gl_exp.make_webhook_action(w.url, include_image=w.include_image)
+            for w in config.webhook_action
+        ]
+
+    if config.email_action:
+        actions.extend(
+            [
+                gl_exp.make_action("EMAIL", e.email, include_image=e.include_image)
+                for e in config.email_action
+            ]
+        )
+
+    if config.text_action:
+        actions.extend(
+            [
+                gl_exp.make_action(
+                    "TEXT", t.phone_number, include_image=t.include_image
+                )
+                for t in config.text_action
+            ]
+        )
+
+    # Create and return the alert
+    return gl_exp.create_alert(
+        detector=config.detector_id,
+        name=config.name,
+        condition=condition,
+        actions=actions,
+        webhook_actions=webhook_actions,
+        enabled=config.enabled,
+        human_review_required=config.human_review_required,
+        snooze_time_enabled=False,
+    )
+
+
+@mcp.tool(
+    name="list_alerts",
+    description="List all alerts associated with a detector.",
+)
+def list_alerts(page: int = 1, page_size: int = 100) -> List[Rule]:
+    gl_exp = get_experimental_client()
+    response = gl_exp.list_rules(page=page, page_size=page_size)
+    return response.results
+
+
+@mcp.tool(
+    name="delete_alert",
+    description="Delete an alert by its alert ID.",
+)
+def delete_alert(alert_id: str) -> None:
+    gl_exp = get_experimental_client()
+    gl_exp.delete_rule(rule_id=alert_id)
+    return None
+
+
+@mcp.tool(
+    name="add_label",
+    description=(
+        "Provide a label (annotation) for an image query. This is used for training detectors "
+        "or correcting results. For counting detectors, you can optionally provide regions of interest."
+    ),
+)
+def add_label(
+    image_query_id: str, label: int | str, rois: list[ROI] | None = None
+) -> None:
+    gl = get_gl_client()
+    gl.add_label(image_query=image_query_id, label=label, rois=rois)
+    return None
+
+
+@mcp.tool(
+    name="get_detector_evaluation_metrics",
+    description="Get detailed evaluation metrics for a detector, including confusion matrix and examples.",
+)
+def get_detector_evaluation(detector_id: str) -> Dict[str, Any]:
+    gl_exp = get_experimental_client()
+    evaluation = gl_exp.get_detector_evaluation(detector=detector_id)
+    return evaluation
+
+
+@mcp.tool(
+    name="update_detector_confidence_threshold",
+    description="Update the confidence threshold for a detector.",
+)
+def update_detector_confidence_threshold(
+    detector_id: str, confidence_threshold: float
+) -> None:
+    gl = get_gl_client()
+    gl.update_detector_confidence_threshold(
+        detector=detector_id, confidence_threshold=confidence_threshold
+    )
+
+
+@mcp.tool(
+    name="update_detector_escalation_type",
+    description=(
+        "Update the escalation type for a detector. This determines when queries are sent for human review. "
+        "Options: 'STANDARD' (escalate based on confidence threshold) or 'NO_HUMAN_LABELING' (never escalate)."
+    ),
+)
+def update_detector_escalation_type(
+    detector_id: str, escalation_type: Literal["STANDARD", "NO_HUMAN_LABELING"]
+) -> None:
+    gl_exp = get_experimental_client()
+    gl_exp.update_detector_escalation_type(
+        detector=detector_id, escalation_type=escalation_type
+    )

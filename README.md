@@ -48,14 +48,48 @@ The following tools are available in the Groundlight MCP server:
    - Input: `image_query_id` (string), `annotate` (boolean, default: false)
    - Returns: `Image` object
 
+8. **create_alert**
+   - Description: Create an alert for a detector that triggers actions when specific conditions are met.
+   - Input: `config` (AlertConfig object with name, detector_id, condition, and optional webhook_action, email_action, text_action, enabled, and human_review_required fields)
+   - Returns: `Rule` object
+
+9. **list_alerts**
+   - Description: List all alerts (rules) in the system. (Note: Not filtered by detector in the current implementation.)
+   - Input: `page` (integer, default: 1), `page_size` (integer, default: 100)
+   - Returns: List of `Rule` objects
+
+10. **delete_alert**
+    - Description: Delete an alert (rule) by its alert ID.
+    - Input: `alert_id` (string)
+    - Returns: None
+
+11. **add_label**
+    - Description: Provide a label (annotation) for an image query. This is used for training detectors or correcting results. For counting detectors, you can optionally provide regions of interest.
+    - Input: `image_query_id` (string), `label` (integer or string), `rois` (optional list)
+    - Returns: None
+
+12. **get_detector_evaluation_metrics**
+    - Description: Get detailed evaluation metrics for a detector, including confusion matrix and examples.
+    - Input: `detector_id` (string)
+    - Returns: Dictionary of evaluation metrics
+
+13. **update_detector_confidence_threshold**
+    - Description: Update the confidence threshold for a detector.
+    - Input: `detector_id` (string), `confidence_threshold` (float)
+    - Returns: None
+
+14. **update_detector_escalation_type**
+    - Description: Update the escalation type for a detector. This determines when queries are sent for human review. Options: 'STANDARD' (escalate based on confidence threshold) or 'NO_HUMAN_LABELING' (never escalate).
+    - Input: `detector_id` (string), `escalation_type` (string, either "STANDARD" or "NO_HUMAN_LABELING")
+    - Returns: None
+
 
 ## Configuration
 
 ### Usage with Claude Desktop
 Add this to your claude_desktop_config.json:
 
-#### Docker
-```json
+#### Docker```json
 "mcpServers": {
   "groundlight": {
     "command": "docker",
@@ -78,8 +112,8 @@ Run the Docker image locally:
 ```bash
 make run-docker
 ```
-
 [Groundlight Internal] Push the Docker image to Docker Hub (requires DockerHub credentials):
 ```bash
 make push-docker
 ```
+s
