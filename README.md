@@ -88,14 +88,38 @@ The following tools are available in the Groundlight MCP server:
 
 ### Usage with Claude Desktop
 Add this to your claude_desktop_config.json:
-
-#### Docker```json
+```json
 "mcpServers": {
   "groundlight": {
     "command": "docker",
     "args": ["run", "--rm", "-i", "-e", "GROUNDLIGHT_API_TOKEN", "groundlight/groundlight-mcp-server"],
     "env": {
         "GROUNDLIGHT_API_TOKEN": "YOUR_API_TOKEN_HERE"
+    }
+  }
+}
+```
+
+### Usage with Zed
+Add this to your settings.json:
+```json
+{
+  "context_servers": {
+    "groundlight": {
+      "command": {
+        "path": "docker",
+        "args": [
+          "run",
+          "--rm",
+          "-i",
+          "-e",
+          "GROUNDLIGHT_API_TOKEN",
+          "groundlight/groundlight-mcp-server"
+        ],
+        "env": {
+          "GROUNDLIGHT_API_TOKEN": "YOUR_API_TOKEN_HERE"
+        }
+      }
     }
   }
 }
