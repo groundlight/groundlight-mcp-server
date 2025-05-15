@@ -413,3 +413,58 @@ def update_detector_escalation_type(
     gl_exp.update_detector_escalation_type(
         detector=detector_id, escalation_type=escalation_type
     )
+
+# Documentation directory
+DOCS_DIR = Path("/opt/groundlight/docs/")
+
+@mcp.resource("docs://list")
+async def list_docs() -> list[Resource]:
+    """List all available documentation resources"""
+    resources = []
+    
+    # Walk through the docs directory
+    for file_path in DOCS_DIR.rglob("*.md"):
+        # Create relative path for cleaner URIs
+        relative_path = file_path.relative_to(DOCS_DIR)
+        uri = f"docs://{relative_path.as_posix()}"
+        
+        # Extract a friendly name from the filename
+        name = file_path.stem.replace("-", " ").replace("_", " ").title()
+        
+        resources.append(Resource(
+            uri=uri,
+            name=name,
+            description=f"Documentation: {name}",
+            mimeType="text/markdown"
+        ))
+    
+    return resources
+
+@mcp.resource("docs://{path:path}")
+async def read_doc(path: str) -> str:
+    """Read a specific documentation file"""
+    file_path = DOCS_DIR / path
+    
+    # Security check - ensure the path is within our docs directory
+    try:
+        file_path = file_path.resolve()
+        if not file_path.is_relative_to(DOCS_DIR):
+            raise ValueError("Invalid path")
+    except (ValueError, OSError):
+        raise ValueError(f"Documentation not found: {path}")
+    
+    # Read and return the file content
+    if file_path.exists() and file_path.is_file():
+        return file_path.read_text(encoding="utf-8")
+    else:
+        raise ValueError(f"Documentation not found: {path}")
+
+@mcp.resource("docs://index")
+async def docs_index() -> str:
+    """Get an index of all available documentation"""
+    docs = []
+    for file_path in sorted(DOCS_DIR.rglob("*.md")):
+        relative_path = file_path.relative_to(DOCS_DIR)
+        docs.append(f"- [{file_path.stem}](docs://{relative_path.as_posix()})")
+
+    return "# Groundlight Documentation Index\n\n" + "\n".join(docs)

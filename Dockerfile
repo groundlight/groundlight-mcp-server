@@ -28,4 +28,11 @@ ENV PATH="/app/.venv/bin:$PATH"
 
 RUN ls -la /app/.venv/bin
 
+RUN apt update && apt install -y \
+    git
+
+RUN mkdir /opt/groundlight
+COPY fetch-docs.sh /app/fetch-docs.sh
+RUN bash -ex /app/fetch-docs.sh
+
 ENTRYPOINT ["groundlight-mcp-server"]
