@@ -21,6 +21,7 @@ RUN bash -ex /app/fetch-docs.sh
 ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev --no-editable
+RUN cp -r /app/resources /opt/groundlight/docs/resources
 
 
 FROM python:3.11-slim-bookworm
