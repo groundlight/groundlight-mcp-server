@@ -419,7 +419,7 @@ def update_detector_escalation_type(
 # Documentation directory
 DOCS_DIR = Path("/opt/groundlight/docs/")
 
-@mcp.resource("docs://list")
+@mcp.resource("file:///list")
 async def list_docs() -> list[Resource]:
     """List all available documentation resources"""
     resources = []
@@ -428,7 +428,7 @@ async def list_docs() -> list[Resource]:
     for file_path in DOCS_DIR.rglob("*.md"):
         # Create relative path for cleaner URIs
         relative_path = file_path.relative_to(DOCS_DIR)
-        uri = f"docs://{relative_path.as_posix()}"
+        uri = f"{relative_path.as_posix()}"
         
         # Extract a friendly name from the filename
         name = file_path.stem.replace("-", " ").replace("_", " ").title()
@@ -442,7 +442,7 @@ async def list_docs() -> list[Resource]:
     
     return resources
 
-@mcp.resource("docs://{path}")
+@mcp.resource("{path}")
 async def read_doc(path: str) -> str:
     """Read a specific documentation file"""
     file_path = DOCS_DIR / path
@@ -461,12 +461,12 @@ async def read_doc(path: str) -> str:
     else:
         raise ValueError(f"Documentation not found: {path}")
 
-@mcp.resource("docs://index")
+@mcp.resource("file:///index")
 async def docs_index() -> str:
     """Get an index of all available documentation"""
     docs = []
     for file_path in sorted(DOCS_DIR.rglob("*.md")):
         relative_path = file_path.relative_to(DOCS_DIR)
-        docs.append(f"- [{file_path.stem}](docs://{relative_path.as_posix()})")
+        docs.append(f"- [{file_path.stem}]({relative_path.as_posix()})")
 
     return "# Groundlight Documentation Index\n\n" + "\n".join(docs)
