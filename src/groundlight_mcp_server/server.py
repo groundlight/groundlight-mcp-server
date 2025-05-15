@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from functools import cache
 from typing import Annotated, Any, Dict, List, Literal, Optional
+from pathlib import Path
 
 from groundlight import (
     ROI,
@@ -13,6 +14,7 @@ from groundlight import (
     VerbEnum,
 )
 from mcp.server.fastmcp import FastMCP, Image
+from mcp.server.fastmcp.resources import Resource
 from pydantic import BaseModel, Field
 
 from groundlight_mcp_server.utils import load_image, render_bounding_boxes, to_mcp_image
@@ -440,7 +442,7 @@ async def list_docs() -> list[Resource]:
     
     return resources
 
-@mcp.resource("docs://{path:path}")
+@mcp.resource("docs://{path}")
 async def read_doc(path: str) -> str:
     """Read a specific documentation file"""
     file_path = DOCS_DIR / path
