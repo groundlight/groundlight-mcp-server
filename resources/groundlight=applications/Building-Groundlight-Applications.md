@@ -28,7 +28,15 @@ Some but not all accounts also have access to the following types:
 - Text recognition: Detect and transcribe text in an image.
 - Object detection: Detect and localize multiple objects in an image.  (Functionally similar to counting, but optimizes quality for bounding boxes, not the correct count.  Cannot distinguishi different classes of objects.)
 
-Note that counting and object-detection models (collectively "OD" models) cost about 10x more than the binary-classification models for inference.  As such a typical inference pipeline consists of three detectors:
+Note that counting and object-detection models (collectively "OD" models) cost about 10x more than the binary-classification models for inference.  
+
+### Simple Applications
+
+A "simple" groundlight application typically consists of a single binary or multiclass detector.  These are the most reliable and easy to understand detectors.  For quick demos, these are a great choice.
+
+### Advanced Applications
+
+An "advanced" groundlight application typically consists of a 3-detector pipeline:
 
 - Binary classification: Does the image have something that deserves a closer look?
 - Counting: Find the objects of interest within the image.  Zoom in on them.
@@ -40,7 +48,7 @@ Simple tasks can be accomplished with a single binary or multiclass detector.  B
 
 ## Practicalities
 
-Configure a grabber object using the `framegrab` library from the cameras.yaml file.  If you're authoring a full demo, author this file as well.  Leave secrets like RTSP login credentials.
+Configure a grabber object using the `framegrab` library from the cameras.yaml file.  If you're authoring a full demo, author this file as well.  Leave secrets like RTSP login credentials.  In most cases, the grabber should be configured with simple motion detection, to reduce inference workloads when the scene is still.
 
 Assume the `GROUNDLIGHT_API_TOKEN` and `GROUNDLIGHT_ENDPOINT` environment variables are already set when the application starts.  Simply instantiating the Groundlight SDK client will use these automatically - no need to configure them in code.
 
