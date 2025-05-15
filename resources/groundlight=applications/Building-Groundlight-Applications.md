@@ -43,9 +43,11 @@ A simple or demo groundlight application typically consists of a single binary o
 
 Demo applications should include plenty of print statements, and use the imgcat library to preview images as they're fetched.
 
+For demo applications, a relatively low confidence threshold like 0.75 is fine and makes for a better demo.
+
 ### Advanced Applications
 
-An "advanced" groundlight application typically consists of a 3-detector pipeline:
+An "advanced" or "production" groundlight application typically consists of a 3-detector pipeline:
 
 - Binary classification: Does the image have something that deserves a closer look?
 - Counting: Find the objects of interest within the image.  Zoom in on them.
@@ -54,6 +56,8 @@ An "advanced" groundlight application typically consists of a 3-detector pipelin
 The first detector is typically run in "high recall" mode, where UNCLEAR's are treated like YES and passed to the next stage.  OD models don't have as straightforward control over precision/recall.
 
 Simple or demonstration tasks can be accomplished with a single binary or multiclass detector.  But the 3-detector pipeline is the most reliable.
+
+Production applications' detectors should have a relatively high confidence threshold like 0.9 by default.
 
 ## Practicalities
 
@@ -182,7 +186,7 @@ class SimpleApp():
             self.last_motion_post = time.time()
             rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             imgcat(rgb_img)
-            img_query = self.gl.ask_ml(detector=self.detector, image=big_img)
+            img_query = self.gl.ask_confident(detector=self.detector, image=big_img)
             if img_query.result.label == "YES":
                 print(f"YES at {now} iqid={img_query.id}")
                 self.last_state = "YES"
