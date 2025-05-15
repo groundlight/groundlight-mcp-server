@@ -419,6 +419,8 @@ def update_detector_escalation_type(
 # Documentation directory
 DOCS_DIR = Path("/opt/groundlight/docs/")
 
+# Note: these probably "should" be resources, but I can't figure out
+# how to get them to show up in Claude.
 @mcp.tool(
     name="list_documentation",
     description="List all available documentation files and their paths."
@@ -457,17 +459,3 @@ def read_documentation(path: str) -> str:
     else:
         raise ValueError(f"Documentation not found: {path}")
 
-# Note: these probably "should" be resources, but I can't figure out
-# how to get them to show up in Claude.
-@mcp.tool(
-    name="get_documentation_index",
-    description="Get an index of all available documentation with links to each file."
-)
-def get_documentation_index() -> str:
-    """Get an index of all available documentation"""
-    docs = []
-    for file_path in sorted(DOCS_DIR.rglob("*.md")):
-        relative_path = file_path.relative_to(DOCS_DIR)
-        docs.append(f"- [{file_path.stem}]({relative_path.as_posix()})")
-
-    return "# Groundlight Documentation Index\n\n" + "\n".join(docs)
