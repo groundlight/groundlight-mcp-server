@@ -419,31 +419,27 @@ def update_detector_escalation_type(
 # Documentation directory
 DOCS_DIR = Path("/opt/groundlight/docs/")
 
-@mcp.resource("file:///list")
-async def list_docs() -> list[Resource]:
-    """List all available documentation resources"""
-    resources = []
-    
-    # Walk through the docs directory
-    for file_path in DOCS_DIR.rglob("*.md"):
-        # Create relative path for cleaner URIs
+@mcp.tool(
+    name="list_documentation",
+    description="List all available documentation files and their paths."
+)
+def list_documentation() -> list[dict[str, str]]:
+    """List all available documentation files"""
+    docs = []
+    for file_path in sorted(DOCS_DIR.rglob("*.md")):
         relative_path = file_path.relative_to(DOCS_DIR)
-        uri = f"{relative_path.as_posix()}"
-        
-        # Extract a friendly name from the filename
-        name = file_path.stem.replace("-", " ").replace("_", " ").title()
-        
-        resources.append(Resource(
-            uri=uri,
-            name=name,
-            description=f"Documentation: {name}",
-            mimeType="text/markdown"
-        ))
-    
-    return resources
+        docs.append({
+            "path": relative_path.as_posix(),
+            "name": file_path.stem.replace("-", " ").replace("_", " ").title(),
+            "description": f"Documentation: {file_path.stem.replace('-', ' ').replace('_', ' ').title()}"
+        })
+    return docs
 
-@mcp.resource("{path}")
-async def read_doc(path: str) -> str:
+@mcp.tool(
+    name="read_documentation",
+    description="Read the contents of a specific documentation file. Provide the path relative to the docs directory."
+)
+def read_documentation(path: str) -> str:
     """Read a specific documentation file"""
     file_path = DOCS_DIR / path
     
@@ -461,8 +457,13 @@ async def read_doc(path: str) -> str:
     else:
         raise ValueError(f"Documentation not found: {path}")
 
-@mcp.resource("file:///index")
-async def docs_index() -> str:
+# Note: these probably "should" be resources, but I can't figure out
+# how to get them to show up in Claude.
+@mcp.tool(
+    name="get_documentation_index",
+    description="Get an index of all available documentation with links to each file."
+)
+def get_documentation_index() -> str:
     """Get an index of all available documentation"""
     docs = []
     for file_path in sorted(DOCS_DIR.rglob("*.md")):
