@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from functools import cache
 from typing import Annotated, Any, Dict, List, Literal, Optional
+from pathlib import Path
 
 from groundlight import (
     ROI,
@@ -13,6 +14,7 @@ from groundlight import (
     VerbEnum,
 )
 from mcp.server.fastmcp import FastMCP, Image
+from mcp.server.fastmcp.resources import Resource
 from pydantic import BaseModel, Field
 
 from groundlight_mcp_server.utils import load_image, render_bounding_boxes, to_mcp_image
@@ -413,3 +415,47 @@ def update_detector_escalation_type(
     gl_exp.update_detector_escalation_type(
         detector=detector_id, escalation_type=escalation_type
     )
+
+# Documentation directory
+DOCS_DIR = Path("/opt/groundlight/docs/")
+
+# Note: these probably "should" be resources, but I can't figure out
+# how to get them to show up in Claude.
+@mcp.tool(
+    name="list_documentation",
+    description="List all available documentation files and their paths."
+)
+def list_documentation() -> list[dict[str, str]]:
+    """List all available documentation files"""
+    docs = []
+    for file_path in sorted(DOCS_DIR.rglob("*.md")):
+        relative_path = file_path.relative_to(DOCS_DIR)
+        docs.append({
+            "path": relative_path.as_posix(),
+            "name": file_path.stem.replace("-", " ").replace("_", " ").title(),
+            "description": f"Documentation: {file_path.stem.replace('-', ' ').replace('_', ' ').title()}"
+        })
+    return docs
+
+@mcp.tool(
+    name="read_documentation",
+    description="Read the contents of a specific documentation file. Provide the path relative to the docs directory."
+)
+def read_documentation(path: str) -> str:
+    """Read a specific documentation file"""
+    file_path = DOCS_DIR / path
+    
+    # Security check - ensure the path is within our docs directory
+    try:
+        file_path = file_path.resolve()
+        if not file_path.is_relative_to(DOCS_DIR):
+            raise ValueError("Invalid path")
+    except (ValueError, OSError):
+        raise ValueError(f"Documentation not found: {path}")
+    
+    # Read and return the file content
+    if file_path.exists() and file_path.is_file():
+        return file_path.read_text(encoding="utf-8")
+    else:
+        raise ValueError(f"Documentation not found: {path}")
+
