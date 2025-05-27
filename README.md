@@ -1,8 +1,4 @@
 <p align="center">
-<img src="images/image0_and_claude_zoomed_in.png">
-</p>
-
-<p align="center">
   <a href="https://opensource.org/license/apache-2-0">
     <img src="https://img.shields.io/badge/License-Apache2.0-yellow?style=for-the-badge" alt="License: Apache2.0">
   <a href="https://www.groundlight.ai/blog/building-computer-vision-applications-with-the-groundlight-mcp-server">
