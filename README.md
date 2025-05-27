@@ -1,4 +1,19 @@
-# groundlight-mcp-server
+<p align="center">
+<img src="images/image0_and_claude_zoomed_in.png">
+</p>
+
+<p align="center">
+  <a href="https://opensource.org/license/apache-2-0">
+    <img src="https://img.shields.io/badge/License-Apache2.0-yellow?style=for-the-badge
+    " alt="License: Apache2.0">
+  <a href="https://www.groundlight.ai/blog/building-computer-vision-applications-with-the-groundlight-mcp-server">
+    <img src="https://img.shields.io/badge/Read%20More-Blog-orange?style=for-the-badge"  alt="Read More">
+  </a>
+</p>
+  </a>
+</p>
+
+# groundlight-mcp-server by <img src=resources/images/gl_logo.png height=25>
 
 ## Overview
 A Model Context Protocol (MCP) server for interacting with Groundlight. This server provides tools to create and list both Detectors and ImageQueries.
