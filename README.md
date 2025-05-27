@@ -11,9 +11,9 @@
 # groundlight-mcp-server by <img src=resources/images/gl_logo.png height=25>
 
 ## Overview
-A Model Context Protocol (MCP) server for interacting with Groundlight. This server provides tools to create and list both Detectors and ImageQueries.
+A Model Context Protocol (MCP) server for interacting with Groundlight. This server provides tools to create, list and customize Detectors, submit and list ImageQueries, create, list and delete Alerts, and examine detector evaluation metrics. 
 
-This MCP server is still in early development. The functionality and available tools are subject to change and expansion as we continue to develop and improve the server.
+The functionality and available tools are subject to change and expansion as we continue to develop and improve this server.
 
 ### Tools
 The following tools are available in the Groundlight MCP server:
