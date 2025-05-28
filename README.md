@@ -1,5 +1,5 @@
 <p align="center">
-<img src="resources/images/groundlight_mcp_blog_hero_full.webp" alt="Animated highlights from Claude creating hummingbird alert application using Groundlight MCP server" height=100>
+<img src="resources/images/groundlight_mcp_blog_hero_full.webp" alt="Animated highlights from Claude creating hummingbird alert application using Groundlight MCP server">
 </p>
 
 <p align="center">
