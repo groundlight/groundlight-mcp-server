@@ -196,6 +196,26 @@ def submit_image_query(detector_id: str, image: str | bytes | Any) -> ImageQuery
     iq = gl.submit_image_query(detector=detector_id, image=img)
     return iq
 
+@mcp.tool(
+    name="capture_and_submit_image_query",
+    description=(
+        "Captures an image from a specified framegrabber and then submits that to the specified detector."
+        "The detector will return a response with a label and confidence score."
+    ),
+)
+def capture_and_submit_image_query(detector_id: str, framegrabber_name: str) -> ImageQuery:
+    gl = get_gl_client()
+    
+    grabber: FrameGrabber = _grabber_cache.get(framegrabber_name)
+    if not grabber:
+        raise ValueError(
+            f"Framegrabber with name {framegrabber_name} not found. Options are: {list(_grabber_cache.keys())}."
+        )
+
+    frame = grabber.grab()
+    
+    iq = gl.submit_image_query(detector=detector_id, image=frame)
+    return iq
 
 @mcp.tool(
     name="get_image_query",
@@ -204,21 +224,6 @@ def submit_image_query(detector_id: str, image: str | bytes | Any) -> ImageQuery
 def get_image_query(image_query_id: str) -> ImageQuery:
     gl = get_gl_client()
     return gl.get_image_query(id=image_query_id)
-
-@mcp.tool(
-    name="test_tool",
-    description="Just testing adding a tool.",
-)
-def test_tool() -> str:
-    return 'foo'
-
-@mcp.tool(
-    name="test_tool2",
-    description="Just testing adding another tool.",
-)
-def test_tool2() -> str:
-    return 'biubiubiu'
-
 
 @mcp.tool(
     name="list_image_queries",
