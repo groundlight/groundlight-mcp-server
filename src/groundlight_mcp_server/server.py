@@ -189,8 +189,6 @@ def list_detectors() -> list[Detector]:
     ),
 )
 def submit_image_query(detector_id: str, image: str | bytes | Any) -> ImageQuery:
-    logger.info(f'Got an image: {type(image)}')
-    print(f'Got an image: {type(image)}')
     gl = get_gl_client()
     img = load_image(image)
     iq = gl.submit_image_query(detector=detector_id, image=img)
