@@ -188,7 +188,7 @@ def list_detectors() -> list[Detector]:
         "file path, URL, or raw bytes. The detector will return a response with a label and confidence score."
     ),
 )
-def submit_image_query(detector_id: str, image: str | bytes | Any) -> ImageQuery:
+def submit_image_query(detector_id: str, image: str | bytes) -> ImageQuery:
     gl = get_gl_client()
     img = load_image(image)
     iq = gl.submit_image_query(detector=detector_id, image=img)
