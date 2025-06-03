@@ -154,4 +154,3 @@ make run-docker
 ```bash
 make push-docker
 ```
-s

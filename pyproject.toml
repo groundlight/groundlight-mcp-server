@@ -7,6 +7,7 @@ requires-python = ">=3.11"
 authors = [{ name = "Groundlight AI" }]
 license = { text = "Apache-2.0" }
 dependencies = [
+    "framegrab>=0.11.3",
     "groundlight>=0.22.4",
     "mcp[cli]>=1.6.0",
     "pillow>=10.0.0",
